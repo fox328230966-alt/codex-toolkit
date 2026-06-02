@@ -1,0 +1,59 @@
+{
+  "name": "codex-toolkit",
+  "version": "0.1.0",
+  "description": "Stop AI scope creep in Codex CLI. A toolkit of practical hooks that keep your AI edits scoped, budgeted, and safe.",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./hooks/scope-guard": "./src/scope-guard.js",
+    "./installer": "./src/installer.js"
+  },
+  "bin": {
+    "codex-toolkit": "bin/codex-toolkit.js"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "hooks/",
+    "examples/",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test",
+    "test:single": "node --test",
+    "lint": "node --check src/*.js bin/*.js",
+    "init": "node bin/codex-toolkit.js init",
+    "list": "node bin/codex-toolkit.js list",
+    "doctor": "node bin/codex-toolkit.js doctor"
+  },
+  "keywords": [
+    "codex",
+    "codex-cli",
+    "openai",
+    "ai-coding",
+    "ai-guardrails",
+    "scope-creep",
+    "hooks",
+    "safety",
+    "linter",
+    "agent"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "author": {
+    "name": "fox328230966-alt",
+    "url": "https://github.com/fox328230966-alt"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fox328230966-alt/codex-toolkit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/fox328230966-alt/codex-toolkit/issues"
+  },
+  "homepage": "https://github.com/fox328230966-alt/codex-toolkit#readme"
+}

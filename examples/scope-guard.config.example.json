@@ -1,0 +1,15 @@
+{
+  "mode": "enforce",
+  "allow": [
+    "src/auth/**",
+    "src/shared/**",
+    "tests/auth/**"
+  ],
+  "deny": [
+    ".env",
+    ".env.*",
+    "**/secrets/**",
+    "**/migrations/**"
+  ],
+  "log": true
+}
