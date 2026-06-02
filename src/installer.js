@@ -45,6 +45,18 @@ const BUNDLED = [
     event: 'PreToolUse',
     description: 'Slow Codex down when it chains many tool calls in a short window.',
   },
+  {
+    id: 'shield-destructive-cmd',
+    file: 'shield-destructive-cmd.js',
+    event: 'PreToolUse',
+    description: 'Refuse shell commands that can destroy the project (rm -rf, force push, drop table, etc.).',
+  },
+  {
+    id: 'shield-env-guard',
+    file: 'shield-env-guard.js',
+    event: 'PreToolUse',
+    description: 'Refuse writes to .env, SSH keys, cloud creds, and other sensitive files.',
+  },
 ];
 
 // --- helpers -----------------------------------------------------------------

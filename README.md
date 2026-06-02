@@ -33,8 +33,10 @@ install into Codex CLI. Each hook has one job:
 | `shield-env-guard` | Refuse writes to `.env`, `id_rsa`, `*.key`, and similar. |
 | `auto-lint` | Run the right linter after a Go / Python / TS file is touched. |
 
-> The v0.2.0 release ships **`scope-guard`**, **`diff-budget`**, and
-> **`tool-pace-check`**. The remaining hooks ship across v0.3.0 – v0.4.0.
+> The v0.3.0 release ships five hooks:
+> **`scope-guard`**, **`diff-budget`**, **`tool-pace-check`**,
+> **`shield-destructive-cmd`**, and **`shield-env-guard`**.
+> `auto-lint` rounds out the suite in v0.4.0.
 
 ## Why this category, why now
 
@@ -105,6 +107,35 @@ These hooks have a default config baked in. To override, drop a JSON file at:
 ```
 
 State files (per-session counters) live at `<cwd>/.codex-toolkit/.diff-budget.json` and `.tool-pace.json`. Delete them to reset a task's budget.
+
+## Configure `shield-destructive-cmd` and `shield-env-guard`
+
+These hooks have a default deny list baked in. To override, drop a JSON file at:
+
+- `<your-project>/.codex-toolkit/shield-destructive-cmd.json`
+- `<your-project>/.codex-toolkit/shield-env-guard.json`
+
+(or the `~/.codex/` equivalents).
+
+```json
+// .codex-toolkit/shield-destructive-cmd.json
+{
+  "mode": "enforce",
+  "extra_patterns": ["\\bterraform\\s+destroy\\b"],
+  "allow_overrides": ["^git\\s+push\\s+--force\\s+to-my-personal-fork"]
+}
+```
+
+```json
+// .codex-toolkit/shield-env-guard.json
+{
+  "mode": "enforce",
+  "extra_patterns": ["**/internal-token*"],
+  "allow_overrides": ["docs/.env.example"]
+}
+```
+
+`extra_patterns` is appended to the built-in deny list; `allow_overrides` is consulted first and short-circuits the deny list if any entry matches.
 
 ## Configure `scope-guard`
 
@@ -180,8 +211,8 @@ no extra deps). CI runs the suite on Node 18, 20, and 22.
 - [x] `scope-guard` — v0.1.0
 - [x] `diff-budget` — v0.2.0
 - [x] `tool-pace-check` — v0.2.0
-- [ ] `shield-destructive-cmd` — v0.3.0
-- [ ] `shield-env-guard` — v0.3.0
+- [x] `shield-destructive-cmd` — v0.3.0
+- [x] `shield-env-guard` — v0.3.0
 - [ ] `auto-lint` — v0.4.0
 - [ ] `npx codex-toolkit init` published to npm — v0.4.0
 - [ ] Per-hook "explain why" debug output — v0.5.0

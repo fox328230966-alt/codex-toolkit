@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-06-02
+
+### Added
+- `shield-destructive-cmd` hook — refuse shell commands that can destroy the
+  project. Default deny list covers `rm -rf /`, `rm -rf ~`, `rm -rf *`,
+  `git push --force`, `git reset --hard`, `git clean -fd`, `drop database/table`,
+  `truncate`, `kubectl delete` without `--dry-run`, `docker system prune -a`,
+  the classic fork bomb, `dd of=/dev/sd*`, and `chmod -R 777 /`. Users can
+  append patterns via `extra_patterns` and grant per-command `allow_overrides`.
+- `shield-env-guard` hook — refuse writes to credential and secret files:
+  `.env*`, SSH keys (`id_rsa`, `id_ed25519`, etc.), PEM/key/p12/pfx files,
+  AWS/GCP credential files, package-manager token files (`.npmrc`, `.pypirc`,
+  `.netrc`), and `secrets/` / `credentials/` / `.gnupg/` directories.
+- Both hooks support `mode: enforce | ask | off`, `extra_patterns`, and
+  `allow_overrides`.
+- 20 new test cases (10 for each hook). Total: **37 green, 0 red**.
+
 ## [0.2.0] - 2026-06-02
 
 ### Added
