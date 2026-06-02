@@ -33,6 +33,18 @@ const BUNDLED = [
     event: 'PreToolUse',
     description: 'Block file edits outside the declared task scope.',
   },
+  {
+    id: 'diff-budget',
+    file: 'diff-budget.js',
+    event: 'PostToolUse',
+    description: 'Refuse writes that exceed a per-task file/byte budget.',
+  },
+  {
+    id: 'tool-pace-check',
+    file: 'tool-pace-check.js',
+    event: 'PreToolUse',
+    description: 'Slow Codex down when it chains many tool calls in a short window.',
+  },
 ];
 
 // --- helpers -----------------------------------------------------------------

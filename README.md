@@ -33,8 +33,8 @@ install into Codex CLI. Each hook has one job:
 | `shield-env-guard` | Refuse writes to `.env`, `id_rsa`, `*.key`, and similar. |
 | `auto-lint` | Run the right linter after a Go / Python / TS file is touched. |
 
-> The first release ships **`scope-guard`** (v0.1.0). The rest are
-> rolling out across v0.2.0 – v0.4.0.
+> The v0.2.0 release ships **`scope-guard`**, **`diff-budget`**, and
+> **`tool-pace-check`**. The remaining hooks ship across v0.3.0 – v0.4.0.
 
 ## Why this category, why now
 
@@ -75,6 +75,36 @@ Verify:
 node bin/codex-toolkit.js list     # see what is installed
 node bin/codex-toolkit.js doctor   # run sanity checks + smoke test
 ```
+
+## Configure `diff-budget` and `tool-pace-check`
+
+These hooks have a default config baked in. To override, drop a JSON file at:
+
+- `<your-project>/.codex-toolkit/diff-budget.json`
+- `<your-project>/.codex-toolkit/tool-pace.json`
+
+(or the `~/.codex/` equivalents).
+
+```json
+// .codex-toolkit/diff-budget.json
+{
+  "mode": "enforce",
+  "max_bytes_per_write": 100000,
+  "max_files_per_task": 25,
+  "max_total_bytes": 500000
+}
+```
+
+```json
+// .codex-toolkit/tool-pace.json
+{
+  "mode": "enforce",
+  "max_calls_in_window": 8,
+  "window_seconds": 60
+}
+```
+
+State files (per-session counters) live at `<cwd>/.codex-toolkit/.diff-budget.json` and `.tool-pace.json`. Delete them to reset a task's budget.
 
 ## Configure `scope-guard`
 
@@ -148,8 +178,8 @@ no extra deps). CI runs the suite on Node 18, 20, and 22.
 ## Roadmap
 
 - [x] `scope-guard` — v0.1.0
-- [ ] `diff-budget` — v0.2.0
-- [ ] `tool-pace-check` — v0.2.0
+- [x] `diff-budget` — v0.2.0
+- [x] `tool-pace-check` — v0.2.0
 - [ ] `shield-destructive-cmd` — v0.3.0
 - [ ] `shield-env-guard` — v0.3.0
 - [ ] `auto-lint` — v0.4.0
