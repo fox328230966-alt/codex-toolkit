@@ -33,3 +33,6 @@ build/
 # Local hook runtime artifacts
 .codex-toolkit.local/
 *.local.json
+
+# One-time staging dir (used when a PAT scope blocks a workflow push)
+.github-tmp/
