@@ -33,10 +33,11 @@ install into Codex CLI. Each hook has one job:
 | `shield-env-guard` | Refuse writes to `.env`, `id_rsa`, `*.key`, and similar. |
 | `auto-lint` | Run the right linter after a Go / Python / TS file is touched. |
 
-> The v0.3.0 release ships five hooks:
+> The v0.4.0 release ships the full six-hook suite:
 > **`scope-guard`**, **`diff-budget`**, **`tool-pace-check`**,
-> **`shield-destructive-cmd`**, and **`shield-env-guard`**.
-> `auto-lint` rounds out the suite in v0.4.0.
+> **`shield-destructive-cmd`**, **`shield-env-guard`**, and **`auto-lint`**.
+
+![codex-toolkit in action: shield-env-guard refuses a .env write, scope-guard allows the in-scope .ts edit, auto-lint confirms clean](docs/demo.svg)
 
 ## Why this category, why now
 
@@ -78,35 +79,39 @@ node bin/codex-toolkit.js list     # see what is installed
 node bin/codex-toolkit.js doctor   # run sanity checks + smoke test
 ```
 
-## Configure `diff-budget` and `tool-pace-check`
+## Configure `scope-guard`
 
-These hooks have a default config baked in. To override, drop a JSON file at:
+Drop a JSON config at one of:
 
-- `<your-project>/.codex-toolkit/diff-budget.json`
-- `<your-project>/.codex-toolkit/tool-pace.json`
-
-(or the `~/.codex/` equivalents).
+- `<your-project>/.codex-toolkit/scope-guard.json` (project-level)
+- `~/.codex/scope-guard.json` (user-level, applies to all projects)
+- `$CODEX_TOOLKIT_SCOPE_GUARD_CONFIG` (explicit override)
 
 ```json
-// .codex-toolkit/diff-budget.json
 {
   "mode": "enforce",
-  "max_bytes_per_write": 100000,
-  "max_files_per_task": 25,
-  "max_total_bytes": 500000
+  "allow": ["src/auth/**", "src/shared/**", "tests/auth/**"],
+  "deny":  [".env", ".env.*", "**/secrets/**", "**/migrations/**"],
+  "log": true
 }
 ```
 
-```json
-// .codex-toolkit/tool-pace.json
-{
-  "mode": "enforce",
-  "max_calls_in_window": 8,
-  "window_seconds": 60
-}
-```
+| Field | Values | Effect |
+| --- | --- | --- |
+| `mode` | `enforce` \| `ask` \| `off` | `enforce` = hard-deny out-of-scope edits. `ask` = prompt the user. `off` = no-op. |
+| `allow` | glob list | Paths matching at least one pattern are allowed. |
+| `deny`  | glob list | If a path matches *any* deny pattern, the edit is refused — even if it would have been allowed. |
+| `log`   | bool | When `true`, every decision is logged to stderr. |
 
-State files (per-session counters) live at `<cwd>/.codex-toolkit/.diff-budget.json` and `.tool-pace.json`. Delete them to reset a task's budget.
+Glob syntax: `*` matches a single path segment, `**` matches any number of segments (including zero), `?` matches a single character, `.` is a literal dot.
+
+### Example: prompt the model to declare its scope
+
+The best way to use `scope-guard` is to put a scope declaration at the top of your prompt:
+
+> _"Refactor the OAuth flow. The only files you may touch are `src/auth/**` and `tests/auth/**`. Anything else: ask first."_
+
+…and put a matching `allow` list in the config. Codex's edit planning is good enough that this combination cuts 90% of out-of-scope churn.
 
 ## Configure `shield-destructive-cmd` and `shield-env-guard`
 
@@ -137,42 +142,53 @@ These hooks have a default deny list baked in. To override, drop a JSON file at:
 
 `extra_patterns` is appended to the built-in deny list; `allow_overrides` is consulted first and short-circuits the deny list if any entry matches.
 
-## Configure `scope-guard`
+## Configure `diff-budget` and `tool-pace-check`
 
-Drop a JSON config at one of:
+These hooks have a default config baked in. To override, drop a JSON file at:
 
-- `<your-project>/.codex-toolkit/scope-guard.json` (project-level)
-- `~/.codex/scope-guard.json` (user-level, applies to all projects)
-- `$CODEX_TOOLKIT_SCOPE_GUARD_CONFIG` (explicit override)
+- `<your-project>/.codex-toolkit/diff-budget.json`
+- `<your-project>/.codex-toolkit/tool-pace.json`
+
+(or the `~/.codex/` equivalents).
+
+```json
+// .codex-toolkit/diff-budget.json
+{
+  "mode": "enforce",
+  "max_bytes_per_write": 100000,
+  "max_files_per_task": 25,
+  "max_total_bytes": 500000
+}
+```
+
+```json
+// .codex-toolkit/tool-pace.json
+{
+  "mode": "enforce",
+  "max_calls_in_window": 8,
+  "window_seconds": 60
+}
+```
+
+State files (per-session counters) live at `<cwd>/.codex-toolkit/.diff-budget.json` and `.tool-pace.json`. Delete them to reset a task's budget.
+
+## Configure `auto-lint`
+
+Default config: every recognized extension gets a sane linter. Override at `<your-project>/.codex-toolkit/auto-lint.json` (or `~/.codex/auto-lint.json`):
 
 ```json
 {
   "mode": "enforce",
-  "allow": ["src/auth/**", "src/shared/**", "tests/auth/**"],
-  "deny":  [".env", ".env.*", "**/secrets/**", "**/migrations/**"],
-  "log": true
+  "fallback": "allow",
+  "linters": {
+    "go": { "cmd": ["gofmt", "-l"], "timeout_ms": 5000 },
+    "py": { "cmd": ["ruff", "check", "--stdin-display-path", "PLACEHOLDER", "-"], "timeout_ms": 10000 },
+    "ts": { "cmd": ["eslint", "--no-warn-ignored", "--stdin", "--stdin-filename", "PLACEHOLDER"], "timeout_ms": 15000 }
+  }
 }
 ```
 
-| Field | Values | Effect |
-| --- | --- | --- |
-| `mode` | `enforce` \| `ask` \| `off` | `enforce` = hard-deny out-of-scope edits. `ask` = prompt the user. `off` = no-op. |
-| `allow` | glob list | Paths matching at least one pattern are allowed. |
-| `deny`  | glob list | If a path matches *any* deny pattern, the edit is refused — even if it would have been allowed. |
-| `log`   | bool | When `true`, every decision is logged to stderr. |
-
-Glob syntax: `*` matches a single path segment, `**` matches any number of segments (including zero), `?` matches a single character, `.` is a literal dot.
-
-### Example: prompt the model to declare its scope
-
-The best way to use `scope-guard` is to put a scope declaration at the
-top of your prompt:
-
-> _"Refactor the OAuth flow. The only files you may touch are
-> `src/auth/**` and `tests/auth/**`. Anything else: ask first."_
-
-…and put a matching `allow` list in the config. Codex's edit planning
-is good enough that this combination cuts 90% of out-of-scope churn.
+`fallback: "deny"` is the strict choice — refuse any change that the linter can't actually check (e.g. the linter binary is missing on PATH). The default `"allow"` is the friendly choice: log a warning, let the change through, trust the user to lint later.
 
 ## Run as a library
 
@@ -213,7 +229,7 @@ no extra deps). CI runs the suite on Node 18, 20, and 22.
 - [x] `tool-pace-check` — v0.2.0
 - [x] `shield-destructive-cmd` — v0.3.0
 - [x] `shield-env-guard` — v0.3.0
-- [ ] `auto-lint` — v0.4.0
+- [x] `auto-lint` — v0.4.0
 - [ ] `npx codex-toolkit init` published to npm — v0.4.0
 - [ ] Per-hook "explain why" debug output — v0.5.0
 - [ ] Codex IDE extension parity — v0.6.0

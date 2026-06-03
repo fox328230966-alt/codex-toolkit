@@ -1,6 +1,6 @@
 {
   "name": "codex-toolkit",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Stop AI scope creep in Codex CLI. A toolkit of practical hooks that keep your AI edits scoped, budgeted, and safe.",
   "type": "module",
   "main": "src/index.js",
@@ -11,6 +11,7 @@
     "./hooks/tool-pace-check": "./src/tool-pace-check.js",
     "./hooks/shield-destructive-cmd": "./src/shield-destructive-cmd.js",
     "./hooks/shield-env-guard": "./src/shield-env-guard.js",
+    "./hooks/auto-lint": "./src/auto-lint.js",
     "./installer": "./src/installer.js"
   },
   "bin": {

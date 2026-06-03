@@ -1,0 +1,11 @@
+{
+  "mode": "enforce",
+  "fallback": "allow",
+  "linters": {
+    "go": { "cmd": ["gofmt", "-l"], "timeout_ms": 5000 },
+    "py": { "cmd": ["ruff", "check", "--stdin-display-path", "PLACEHOLDER", "-"], "timeout_ms": 10000 },
+    "ts": { "cmd": ["eslint", "--no-warn-ignored", "--stdin", "--stdin-filename", "PLACEHOLDER"], "timeout_ms": 15000 },
+    "js": { "cmd": ["eslint", "--no-warn-ignored", "--stdin", "--stdin-filename", "PLACEHOLDER"], "timeout_ms": 15000 },
+    "rs": { "cmd": ["rustfmt", "--check"], "timeout_ms": 10000 }
+  }
+}

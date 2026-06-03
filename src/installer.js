@@ -57,6 +57,12 @@ const BUNDLED = [
     event: 'PreToolUse',
     description: 'Refuse writes to .env, SSH keys, cloud creds, and other sensitive files.',
   },
+  {
+    id: 'auto-lint',
+    file: 'auto-lint.js',
+    event: 'PostToolUse',
+    description: 'Run the right linter (gofmt/ruff/eslint/rustfmt) on every file Codex touches.',
+  },
 ];
 
 // --- helpers -----------------------------------------------------------------

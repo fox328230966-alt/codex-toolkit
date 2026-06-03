@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-06-03
+
+### Added
+- `auto-lint` hook — runs the right linter on every file Codex writes. Detects
+  language by extension: `.go` → `gofmt`, `.py`/`.pyi` → `ruff check`,
+  `.ts`/`.tsx`/`.js`/`.jsx` → `eslint --stdin`, `.rs` → `rustfmt --check`.
+  PostToolUse decision: deny if the linter reports issues, ask on timeout,
+  allow on clean / missing linter (configurable).
+- Per-linter `cmd` and `timeout_ms` are user-overridable in
+  `.codex-toolkit/auto-lint.json`; `fallback` controls behavior when the
+  linter binary is not on PATH (`allow` or `deny`).
+- 9 new test cases (8 logic + 1 real-linter smoke test against `gofmt`).
+  Total: **47 green, 0 red**.
+- `docs/demo.svg` — embeddable terminal demo showing the
+  `shield-env-guard` hook intercepting a `.env` write. No external
+  recording tool needed.
+
 ## [0.3.0] - 2026-06-02
 
 ### Added
