@@ -31,7 +31,8 @@
     "lint": "node --check src/*.js bin/*.js",
     "init": "node bin/codex-toolkit.js init",
     "list": "node bin/codex-toolkit.js list",
-    "doctor": "node bin/codex-toolkit.js doctor"
+    "doctor": "node bin/codex-toolkit.js doctor",
+    "prepublishOnly": "npm test && npm run lint"
   },
   "keywords": [
     "codex",

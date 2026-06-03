@@ -69,10 +69,22 @@ Both points emit a JSON decision `{ "decision": "allow" | "ask" | "deny", "reaso
 ## Install
 
 ```sh
-# Coming soon (not published yet — see "Roadmap"):
-#   npx codex-toolkit init
-#
-# For now, install from this repo:
+# 1. Pull the package (no global install needed):
+npx codex-toolkit@latest init
+```
+
+That one command copies every bundled hook into `~/.codex/hooks/`, writes `~/.codex/hooks.json` registering them with Codex CLI, and appends a `[hooks]` section to `~/.codex/config.toml` (only if you don't already have one).
+
+Verify:
+
+```sh
+npx codex-toolkit@latest list     # see what is installed
+npx codex-toolkit@latest doctor   # run sanity checks + smoke test
+```
+
+If you'd rather install from source (e.g. to hack on a hook), clone the repo and run the same `init` command directly:
+
+```sh
 git clone https://github.com/fox328230966-alt/codex-toolkit.git
 cd codex-toolkit
 node bin/codex-toolkit.js init
@@ -254,7 +266,7 @@ no extra deps). CI runs the suite on Node 18, 20, and 22.
 - [x] `shield-destructive-cmd` — v0.3.0
 - [x] `shield-env-guard` — v0.3.0
 - [x] `auto-lint` — v0.4.0
-- [ ] `npx codex-toolkit init` published to npm — v0.4.0
+- [x] `npx codex-toolkit init` published to npm — v0.4.0
 - [ ] Per-hook "explain why" debug output — v0.5.0
 - [ ] Codex IDE extension parity — v0.6.0
 
