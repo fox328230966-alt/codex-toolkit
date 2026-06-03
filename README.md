@@ -2,6 +2,10 @@
 
 > **Stop AI scope creep in Codex CLI.**
 > A toolkit of practical hooks that keep your AI edits scoped, budgeted, and safe.
+>
+> A hook-based safety layer for Codex CLI that blocks scope creep,
+> unsafe commands, sensitive-file writes, and oversized edits before they
+> turn into review noise.
 
 [![CI](https://github.com/fox328230966-alt/codex-toolkit/actions/workflows/ci.yml/badge.svg)](https://github.com/fox328230966-alt/codex-toolkit/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -39,6 +43,28 @@ install into Codex CLI. Each hook has one job:
 
 ![codex-toolkit in action: shield-env-guard refuses a .env write, scope-guard allows the in-scope .ts edit, auto-lint confirms clean](docs/demo.svg)
 
+## See it run
+
+The demo below calls the real hook modules with sample Codex tool events.
+It does not require installing Codex CLI or touching your `~/.codex` config.
+
+```sh
+npm run demo
+```
+
+Example output:
+
+```text
+codex-toolkit demo: real hook decisions
+scope: allow src/auth/** and tests/auth/** only
+
+DENY  shield-env-guard write_file(.env) — shield-env-guard: refused to write to ".env" — matches a sensitive path (SSH key, .env, cloud cred, package-manager token, or secrets dir). If this is intentional, set "allow_overrides" in .codex-toolkit/shield-env-guard.json.
+DENY  scope-guard write_file(README.md) — scope-guard: "README.md" is outside the declared scope ["src/auth/**","tests/auth/**"]. Update your .codex-toolkit/scope-guard.json if this edit is intentional.
+ALLOW scope-guard write_file(src/auth/login.ts)
+DENY  shield-destructive-cmd shell("git reset --hard") — shield-destructive-cmd: refused command git reset --hard Matched destructive pattern(s): - git-hard-reset: hard reset discards uncommitted changes If this is intentional, set "allow_overrides" in .codex-toolkit/shield-destructive-cmd.json.
+DENY  diff-budget write_file(src/auth/large.ts) — diff-budget: per-write size (120) exceeded limit (80). Increase the limit in .codex-toolkit/diff-budget.json or split the task.
+```
+
 ## Why this category, why now
 
 Codex CLI shipped lifecycle hooks as a stable, default-on feature in
@@ -65,6 +91,22 @@ Six hooks. Two trigger points. Zero runtime dependencies.
 | **PostToolUse** (after the tool runs) | `diff-budget`, `auto-lint` | "Was the result acceptable?" |
 
 Both points emit a JSON decision `{ "decision": "allow" | "ask" | "deny", "reason": "..." }` and respect the hook process's exit code (`0` = success, `2` = blocking error → deny). See [`docs/architecture.svg`](docs/architecture.svg) for the full diagram.
+
+## Compatibility
+
+`codex-toolkit` targets Codex CLI lifecycle hooks that pass JSON events to
+hook subprocesses on stdin and accept JSON decisions on stdout:
+
+```json
+{ "decision": "allow" | "ask" | "deny", "reason": "..." }
+```
+
+The parser intentionally accepts several observed event shapes:
+`event` / `hook_event_name` / `eventName`, `tool_name` / `toolName`, and
+`tool_input` / `toolInput`. The current test suite covers the file-writing
+and shell-command shapes used by the bundled hooks. If Codex publishes a
+formal hook schema, the compatibility surface is isolated in
+[`src/hook-protocol.js`](src/hook-protocol.js).
 
 ## Install
 
@@ -214,6 +256,48 @@ Default config: every recognized extension gets a sane linter. Override at `<you
 ```
 
 `fallback: "deny"` is the strict choice — refuse any change that the linter can't actually check (e.g. the linter binary is missing on PATH). The default `"allow"` is the friendly choice: log a warning, let the change through, trust the user to lint later.
+
+## Recipes
+
+### Only let Codex touch one feature area
+
+```json
+{
+  "mode": "enforce",
+  "allow": ["src/auth/**", "tests/auth/**"],
+  "deny": [".env", ".env.*", "**/secrets/**"]
+}
+```
+
+Use this when a prompt says "fix auth" and you do not want opportunistic
+README, dependency, or unrelated module edits.
+
+### Protect migrations and generated files
+
+```json
+{
+  "mode": "ask",
+  "allow": ["src/**", "tests/**"],
+  "deny": ["**/migrations/**", "**/*.generated.*", "package-lock.json"]
+}
+```
+
+`ask` mode keeps the guardrail visible without hard-blocking legitimate
+maintenance work.
+
+### Loosen budgets for a planned refactor
+
+```json
+{
+  "mode": "enforce",
+  "max_bytes_per_write": 250000,
+  "max_files_per_task": 60,
+  "max_total_bytes": 1000000
+}
+```
+
+Use a larger budget when the task is intentionally broad, then delete
+`.codex-toolkit/.diff-budget.json` to reset the counters for the next task.
 
 ## Compare with alternatives
 

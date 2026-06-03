@@ -20,6 +20,7 @@
   "files": [
     "bin/",
     "src/",
+    "scripts/",
     "hooks/",
     "examples/",
     "docs/",
@@ -29,7 +30,8 @@
   "scripts": {
     "test": "node --test",
     "test:single": "node --test",
-    "lint": "node --check src/*.js bin/*.js",
+    "lint": "node --check src/*.js bin/*.js scripts/*.js",
+    "demo": "node scripts/demo.js",
     "init": "node bin/codex-toolkit.js init",
     "list": "node bin/codex-toolkit.js list",
     "doctor": "node bin/codex-toolkit.js doctor",
