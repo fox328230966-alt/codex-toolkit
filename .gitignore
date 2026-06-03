@@ -36,3 +36,8 @@ build/
 
 # One-time staging dir (used when a PAT scope blocks a workflow push)
 .github-tmp/
+
+# GitHub Actions workflows are not pushed in this repo (D7 deferred —
+# see package.json#scripts["test"] for the local test entry point).
+# If we add CI later, remove this line and re-add the workflow files.
+.github/workflows/
