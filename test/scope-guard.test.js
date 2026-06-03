@@ -41,11 +41,20 @@ test('allows non-file tools regardless of scope', () => {
   });
 });
 
-test('allows in-scope file edits', () => {
-  withConfig({ allow: ['src/auth/**'] }, () => {
-    const r = evaluate(makeEvent('write_file', 'src/auth/login.ts'));
-    assert.equal(r.decision, DECISIONS.ALLOW);
-  });
+test('default config denies the obvious-dangerous paths out of the box', () => {
+  // No user config — the DEFAULT_CONFIG deny list should still fire.
+  // This is the v0.4.2 behavior change: a fresh install is no longer
+  // wide-open by default.
+  const prev = process.env.CODEX_TOOLKIT_SCOPE_GUARD_CONFIG;
+  delete process.env.CODEX_TOOLKIT_SCOPE_GUARD_CONFIG;
+  try {
+    for (const p of ['.env', '.env.production', 'secrets/api.json', '.git/config']) {
+      const r = evaluate(makeEvent('write_file', p));
+      assert.equal(r.decision, DECISIONS.DENY, `default should deny: ${p}`);
+    }
+  } finally {
+    if (prev !== undefined) process.env.CODEX_TOOLKIT_SCOPE_GUARD_CONFIG = prev;
+  }
 });
 
 test('denies out-of-scope file edits in enforce mode', () => {

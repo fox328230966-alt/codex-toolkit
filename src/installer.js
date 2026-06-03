@@ -83,6 +83,19 @@ function copyHook(file) {
   const dst = path.join(HOOKS_INSTALLED, file);
   fs.copyFileSync(src, dst);
   fs.chmodSync(dst, 0o755);
+  // Also copy the shared support modules so the installed hook can
+  // resolve its relative `import './hook-protocol.js'` etc. The hooks
+  // run from ~/.codex/hooks/ as a fresh subprocess, so they need their
+  // deps next to them — they cannot import from src/ inside the npm
+  // package because that path varies by install location.
+  for (const dep of ['hook-protocol.js', 'state-store.js']) {
+    const depSrc = path.join(HOOKS_DIR, dep);
+    const depDst = path.join(HOOKS_INSTALLED, dep);
+    if (fs.existsSync(depSrc)) {
+      fs.copyFileSync(depSrc, depDst);
+      fs.chmodSync(depDst, 0o644);
+    }
+  }
   return dst;
 }
 

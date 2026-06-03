@@ -33,8 +33,26 @@ import {
 
 const DEFAULT_CONFIG = {
   mode: 'enforce',
+  // Default allow: everything except the deny list. Users override this
+  // with their own scope-guard.json when they want a tighter scope.
   allow: ['**/*'],
-  deny: [],
+  // Default deny: paths that almost never should be AI-edited, even when
+  // the user has not configured anything. v0.1.0–v0.4.1 had `deny: []`,
+  // which meant "default mode: enforce" was a no-op for users who never
+  // wrote a config. The P1 bug found in v0.4.1 dogfooding was that the
+  // installed hook also broke (couldn't find its deps), so users
+  // installed + doctor reported green even though real Codex sessions
+  // would never fire the guard. This default deny list means a brand
+  // new install now refuses the most common dangerous writes out of
+  // the box, which matches the README's "default mode: enforce" claim.
+  deny: [
+    '.env',
+    '.env.*',
+    '**/.env',
+    '**/.env.*',
+    '**/secrets/**',
+    '**/.git/**',
+  ],
   log: true,
 };
 

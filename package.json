@@ -1,6 +1,6 @@
 {
   "name": "codex-toolkit",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Stop AI scope creep in Codex CLI. A toolkit of practical hooks that keep your AI edits scoped, budgeted, and safe.",
   "type": "module",
   "main": "src/index.js",
