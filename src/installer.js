@@ -99,6 +99,12 @@ function copyHook(file) {
   return dst;
 }
 
+function writeHooksPackageJson() {
+  writeJson(path.join(HOOKS_INSTALLED, 'package.json'), {
+    type: 'module',
+  });
+}
+
 function readJson(file) {
   try {
     return JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -133,9 +139,16 @@ function patchConfigToml(hookEntries) {
   const header =
     '# Added by codex-toolkit — do not edit by hand unless you know what you are doing.\n';
   const lines = ['[hooks]'];
+  const grouped = new Map();
   for (const entry of hookEntries) {
-    const cmd = entry.command.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-    lines.push(`"${entry.event}" = [{ command = "${cmd}", timeout = 30 }]`);
+    grouped.set(entry.event, [...(grouped.get(entry.event) || []), entry]);
+  }
+  for (const [event, entries] of grouped) {
+    const commands = entries.map((entry) => {
+      const cmd = entry.command.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+      return `{ command = "${cmd}", timeout = 30 }`;
+    });
+    lines.push(`"${event}" = [${commands.join(', ')}]`);
   }
   const fragment = header + lines.join('\n') + '\n';
 
@@ -174,6 +187,7 @@ export function install({ dryRun = false, scope = 'user' } = {}) {
   }
 
   if (!dryRun) {
+    writeHooksPackageJson();
     const hooksJson = readJson(HOOKS_CONFIG) || { hooks: {} };
     hooksJson.hooks = hooksJson.hooks || {};
     for (const entry of entries) {

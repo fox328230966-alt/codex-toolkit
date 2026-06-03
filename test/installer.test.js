@@ -2,7 +2,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, rmSync, readdirSync, existsSync } from 'node:fs';
+import { mkdtempSync, rmSync, readdirSync, existsSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -36,6 +36,33 @@ test('install copies hooks AND their shared dependencies', () => {
       existsSync(path.join(codexHome, 'hooks', 'state-store.js')),
       'state-store.js not copied — installed hooks will fail to import',
     );
+    assert.deepEqual(
+      JSON.parse(readFileSync(path.join(codexHome, 'hooks', 'package.json'), 'utf8')),
+      { type: 'module' },
+      'installed hooks need a package.json so Node 18 treats them as ESM',
+    );
+  } finally {
+    if (prevCodexHome === undefined) delete process.env.CODEX_HOME;
+    else process.env.CODEX_HOME = prevCodexHome;
+    rmSync(codexHome, { recursive: true, force: true });
+  }
+});
+
+test('install writes grouped TOML hook entries without duplicate event keys', () => {
+  const codexHome = mkdtempSync(path.join(tmpdir(), 'ct-inst-home-'));
+  const prevCodexHome = process.env.CODEX_HOME;
+  process.env.CODEX_HOME = codexHome;
+  try {
+    const proc = spawnSync('node', ['bin/codex-toolkit.js', 'init'], {
+      encoding: 'utf8',
+      cwd: path.resolve('.'),
+    });
+    assert.equal(proc.status, 0, `init exited non-zero: ${proc.stderr}`);
+    const toml = readFileSync(path.join(codexHome, 'config.toml'), 'utf8');
+    assert.equal((toml.match(/^"PreToolUse"\s=/gm) || []).length, 1);
+    assert.equal((toml.match(/^"PostToolUse"\s=/gm) || []).length, 1);
+    assert.match(toml, /scope-guard\.js.*tool-pace-check\.js.*shield-destructive-cmd\.js.*shield-env-guard\.js/);
+    assert.match(toml, /diff-budget\.js.*auto-lint\.js/);
   } finally {
     if (prevCodexHome === undefined) delete process.env.CODEX_HOME;
     else process.env.CODEX_HOME = prevCodexHome;

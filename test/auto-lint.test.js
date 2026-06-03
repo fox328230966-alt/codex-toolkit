@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { evaluate, langFor } from '../src/auto-lint.js';
 import { DECISIONS } from '../src/hook-protocol.js';
 
@@ -153,7 +154,6 @@ test('lint timeout turns the decision into ASK', async () => {
 function hasBinary(name) {
   // Cheap check: try to run `which`.
   try {
-    const { spawnSync } = require('node:child_process');
     const p = spawnSync('which', [name], { encoding: 'utf8' });
     return p.status === 0 && !!p.stdout.trim();
   } catch {
