@@ -323,9 +323,19 @@ function main() {
   }
 }
 
-const invokedDirectly =
-  import.meta.url === `file://${process.argv[1]}` ||
-  process.argv[1]?.endsWith('codex-toolkit.js');
-if (invokedDirectly) {
+// Export main so bin/codex-toolkit.js can invoke it explicitly. (The
+// previous top-level "am I the entry point?" check was unreliable: when
+// invoked through `npx codex-toolkit …`, process.argv[1] points at the
+// npx launcher, not at this file, so the check silently returned false
+// and the CLI produced no output.)
+export { main };
+
+// Fallback for direct invocation: `node src/installer.js` (used in unit
+// tests and local debugging). When loaded via the bin, the IIFE in
+// bin/codex-toolkit.js handles the call — and we must NOT also fire here,
+// otherwise every command runs twice.
+const __filename = fileURLToPath(import.meta.url);
+const entryPoint = process.argv[1] ? path.resolve(process.argv[1]) : null;
+if (entryPoint && entryPoint === __filename) {
   main();
 }
