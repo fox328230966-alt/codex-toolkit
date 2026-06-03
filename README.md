@@ -53,6 +53,19 @@ guardrails were either:
 those two — see [`docs/why-scope-creep.md`](docs/why-scope-creep.md)
 for the longer version.
 
+## Architecture
+
+Six hooks. Two trigger points. Zero runtime dependencies.
+
+![codex-toolkit architecture — six hooks placed at PreToolUse and PostToolUse of the Codex CLI lifecycle](docs/architecture.svg)
+
+| Trigger | Hooks | What they decide |
+| --- | --- | --- |
+| **PreToolUse** (before the tool runs) | `scope-guard`, `tool-pace-check`, `shield-destructive-cmd`, `shield-env-guard` | "Should this tool call even happen?" |
+| **PostToolUse** (after the tool runs) | `diff-budget`, `auto-lint` | "Was the result acceptable?" |
+
+Both points emit a JSON decision `{ "decision": "allow" | "ask" | "deny", "reason": "..." }` and respect the hook process's exit code (`0` = success, `2` = blocking error → deny). See [`docs/architecture.svg`](docs/architecture.svg) for the full diagram.
+
 ## Install
 
 ```sh
@@ -189,6 +202,17 @@ Default config: every recognized extension gets a sane linter. Override at `<you
 ```
 
 `fallback: "deny"` is the strict choice — refuse any change that the linter can't actually check (e.g. the linter binary is missing on PATH). The default `"allow"` is the friendly choice: log a warning, let the change through, trust the user to lint later.
+
+## Compare with alternatives
+
+We wrote down the four-way comparison (vanilla Codex, hand-rolled hooks, Codex built-ins only, `codex-toolkit`) in [`docs/comparison.md`](docs/comparison.md). The short version:
+
+- **Vanilla Codex** has no scope / pace / budget / blocklist / auto-lint defenses.
+- **Hand-rolled hooks** work but you maintain ~200 LOC of glue per project and never get a test suite for the safety net itself.
+- **Built-ins** (`approval_policy`, `sandbox_mode`, `rules`, `undo`) are real and worth using, but they are *complementary*, not a substitute. Sandbox doesn't know "in scope". `undo` is reactive.
+- **`codex-toolkit`** is the lightest-touch option for the same safety level: `codex-toolkit init`, edit a 5-line JSON if you want to customize, done.
+
+The recommended config in `~/.codex/config.toml` is to **layer** the two: built-ins as defensive defaults, codex-toolkit hooks as the per-task guardrail on top.
 
 ## Run as a library
 
