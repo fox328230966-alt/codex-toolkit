@@ -7,9 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.3] - 2026-06-05
+
+### Added
+- `npm run demo` now runs real hook decisions against sample Codex tool events.
+- README now includes a runnable demo, compatibility notes, and task-scope recipes.
+- GitHub Actions CI now runs the test and lint suite on Node 18, 20, and 22.
+
 ### Changed
-- README: install section now uses `npx codex-toolkit@latest init` (the package is published to npm).
-- `package.json`: added `prepublishOnly` script — `npm publish` now runs the test + lint suite first.
+- npm package contents now include `docs/` and `scripts/` so README assets and
+  the demo script are present in the published tarball.
+- `npm run lint` now checks `scripts/*.js` in addition to `src/*.js` and `bin/*.js`.
+
+### Fixed
+- Installer now groups multiple hook commands under one TOML event key instead
+  of writing duplicate `PreToolUse` / `PostToolUse` keys.
+- Installed hooks now get a local `package.json` with `"type": "module"` so
+  copied ESM hook files run correctly on Node 18.
+- `auto-lint` tests now use ESM-compatible binary detection instead of silently
+  skipping real-linter checks.
+- GitHub Actions no longer enables npm cache without a lockfile.
+
+## [0.4.2] - 2026-06-03
+
+### Fixed
+- Installer now copies shared hook support modules into `~/.codex/hooks/`, so
+  installed hooks can resolve their relative imports.
+- `scope-guard` now denies common sensitive paths out of the box, including
+  `.env`, `.env.*`, `secrets/`, and `.git/`.
+
+## [0.4.1] - 2026-06-03
+
+### Fixed
+- CLI bin shim now explicitly invokes the installer entry point when run
+  through `npx codex-toolkit`.
 
 ## [0.4.0] - 2026-06-03
 
