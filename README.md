@@ -8,6 +8,8 @@
 > turn into review noise.
 
 [![CI](https://github.com/fox328230966-alt/codex-toolkit/actions/workflows/ci.yml/badge.svg)](https://github.com/fox328230966-alt/codex-toolkit/actions)
+[![npm version](https://img.shields.io/npm/v/codex-toolkit.svg)](https://www.npmjs.com/package/codex-toolkit)
+[![npm downloads](https://img.shields.io/npm/dw/codex-toolkit.svg)](https://www.npmjs.com/package/codex-toolkit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%E2%89%A518-blue.svg)](package.json)
 
